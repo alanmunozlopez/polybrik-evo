@@ -39,17 +39,19 @@ add_executable(input_test input_test.cpp
     ${PSDL}/NullDisplayDriver.cpp ${PSDL}/TimerImpl.cpp
     ${PSDL}/stubs/BatteryImpl.cpp ${PSDL}/stubs/CrcCalculatorImpl.cpp
     ${PSDL}/stubs/EncoderImpl.cpp ${PSDL}/stubs/LedsImpl.cpp ${PSDL}/stubs/PadsImpl.cpp
-    ${PSDL}/stubs/RadioImpl.cpp ${PSDL}/stubs/Sgtl5000Impl.cpp ${PSDL}/stubs/UartMidiImpl.cpp
-    ${PSDL}/stubs/UsbAudioImpl.cpp ${PSDL}/stubs/UsbImpl.cpp ${PSDL}/stubs/UsbMidiImpl.cpp)
+    ${PSDL}/stubs/RadioImpl.cpp ${PSDL}/stubs/Sgtl5000Impl.cpp ${PSDL}/midi/UartMidiImpl.cpp
+    ${PSDL}/stubs/UsbAudioImpl.cpp ${PSDL}/stubs/UsbImpl.cpp ${PSDL}/midi/UsbMidiImpl.cpp
+    ${PSDL}/midi/MidiHub.cpp ${PSDL}/midi/MidiParser.cpp)
 target_include_directories(input_test BEFORE PRIVATE ${PSDL}/config) # same shadow as tracker-sdl
 target_include_directories(input_test PRIVATE ${PSDL})
-target_link_libraries(input_test PRIVATE tracker_core SDL2::SDL2)
+target_link_libraries(input_test PRIVATE tracker_core SDL2::SDL2 Threads::Threads)
 target_compile_options(input_test PRIVATE ${TEST_FLAGS})
 
 # --- audio lane (io/AudioHost, io/WavAudioOut, io/sdl/SdlAudioOut) ---
 # glue.cpp gives the audio lock and the key mute; SDL2 for SdlAudioOut's class (no device is opened).
 add_executable(audio_test audio_test.cpp
     ${PSDL}/io/AudioHost.cpp ${PSDL}/io/WavAudioOut.cpp ${PSDL}/io/sdl/SdlAudioOut.cpp
+    ${PSDL}/midi/MidiHub.cpp ${PSDL}/midi/MidiParser.cpp
     ${PSDL}/glue.cpp ${PSDL}/stubs/Sgtl5000Impl.cpp)
 target_include_directories(audio_test PRIVATE ${PSDL})
 target_link_libraries(audio_test PRIVATE tracker_core SDL2::SDL2 Threads::Threads)
@@ -74,3 +76,11 @@ add_executable(actionlist_test actionlist_test.cpp ${PSDL}/NullDisplayDriver.cpp
 target_include_directories(actionlist_test PRIVATE ${PSDL})
 target_link_libraries(actionlist_test PRIVATE tracker_core Threads::Threads)
 target_compile_options(actionlist_test PRIVATE ${TEST_FLAGS})
+
+# --- midi lane (midi/MidiParser, midi/MidiHub over a FIFO, midi/UsbMidiImpl + UartMidiImpl) ---
+add_executable(midi_test midi_test.cpp
+    ${PSDL}/midi/MidiParser.cpp ${PSDL}/midi/MidiHub.cpp
+    ${PSDL}/midi/UsbMidiImpl.cpp ${PSDL}/midi/UartMidiImpl.cpp)
+target_include_directories(midi_test PRIVATE ${PSDL})
+target_link_libraries(midi_test PRIVATE tracker_core Threads::Threads)
+target_compile_options(midi_test PRIVATE ${TEST_FLAGS})

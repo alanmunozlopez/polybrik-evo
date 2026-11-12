@@ -9,6 +9,7 @@ Throwaway probes for the device: 32-bit support, input, framebuffer, SDL display
 | `fbinfo.c` | Static aarch64. Prints FBIOGET_VSCREENINFO / FBIOGET_FSCREENINFO for `/dev/fb0`. |
 | `sdltest.c` | Dynamic aarch64 against `libSDL2-2.0.so.0`. Display mode, renderer, audio obtained spec, joystick, event log. `sdltest [seconds]`. |
 | `launch.sh` | Pak launcher for `/mnt/SDCARD/Tools/tg5040/SdlTest.pak/`. |
+| `midi-diag.sh` | Read-only shell report of what the OS offers for USB MIDI and USB audio: sound cards, raw MIDI ports, `snd-usb-audio`, kernel config, USB devices and roles, PipeWire, with a verdict at the end. Writes `polybrik-midi-diag.txt` at the SD root. Runs over SSH (`sh midi-diag.sh`), or from the menu: as `launch.sh` in `/mnt/SDCARD/Tools/tg5040/MIDI Diag.pak/` (NextUI), or as `mux_launch.sh` in `/mnt/mmc/MUOS/application/MIDI Diag/` (muOS). |
 | `build.sh` | Rebuilds everything into `out/` (ignored by `devtests/.gitignore`). |
 
 Pro stick probe: `sdltest` prints every

@@ -40,6 +40,10 @@ class SdlAudioOut final : public IAudioOut
     uint32_t lateCallbacks_ = 0;
     int64_t lastCallbackUs = 0;
     int64_t expectedPeriodUs = 0;
+    int64_t playBaseUs = 0;   // MidiHub time at which the next filled frame is heard; 0 outside the callback
+    int64_t anchorUs = 0;     // play-time model: frame anchorFrames is heard at anchorUs + anchorFrames / rate
+    int64_t anchorFrames = 0;
+    bool rtTried = false;     // the callback thread asked once for SCHED_FIFO (Linux)
 };
 
 #endif

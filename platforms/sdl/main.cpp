@@ -21,6 +21,7 @@
 #include "io/sdl/SdlDisplayOut.h"
 #endif
 #include "io/sdl/SdlInput.h"
+#include "midi/MidiHub.h"
 #include "mtStructs.h"
 
 #include <SDL.h>
@@ -66,6 +67,7 @@ struct Options
     const char* device = nullptr;
     bool noLegend = false;
     const char* screenshotStrip = nullptr;
+    bool noMidi = false;      // no raw MIDI host (midi/MidiHub); --sim-clock implies it
 };
 
 void usage(const char* argv0)
@@ -74,7 +76,7 @@ void usage(const char* argv0)
             "usage: %s --sd DIR [--headless] [--fullscreen] [--scale N | --no-scale] [--quit-after MS] [--log FILE]\n"
             "          [--screenshot PATH] [--screenshot-at MS] [--dump-dl] [--keys SPEC]\n"
             "          [--audio-file PATH | --no-audio] [--device brick|brickpro] [--no-legend]\n"
-            "          [--screenshot-strip PATH] [--no-window] [--from-ready] [--sim-clock]\n          [--generic-r4]\n",
+            "          [--screenshot-strip PATH] [--no-window] [--from-ready] [--sim-clock]\n          [--generic-r4] [--no-midi]\n",
             argv0);
     exit(2);
 }
@@ -145,6 +147,8 @@ Options parseArgs(int argc, char** argv)
             o.noLegend = true;
         else if (!strcmp(argv[i], "--screenshot-strip") && hasValue)
             o.screenshotStrip = argv[++i];
+        else if (!strcmp(argv[i], "--no-midi"))
+            o.noMidi = true;
         else
             usage(argv[0]);
     }
@@ -244,6 +248,10 @@ int main(int argc, char** argv)
         out.reset(new SdlDisplayOut(opt.scale, opt.fullscreen));
 #endif
     bool unscaled = opt.scale == 1;   // L4 + Menu toggles it
+    // Raw MIDI host: before audio starts, so the first rendered blocks already see the device thread.
+    // Golden runs (--sim-clock) stay deterministic without it.
+    if (!opt.noMidi && !opt.simClock)
+        MidiHub::instance().start(opt.sd);
     PlatformImpl platform(opt.sd, opt.headless ? static_cast<DisplayDriver*>(&nullDriver) : &eveDriver);
 
     Tracker* tracker = Tracker::getInstance();

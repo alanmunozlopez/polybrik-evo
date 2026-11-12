@@ -160,6 +160,12 @@ void cTextBox::update()
         API_END();
     }
 
+#ifdef PLATFORM_SDL
+    // Config items without a description (the MIDI group) open the item editor with text == nullptr.
+    // The Tracker reads address 0 harmlessly; Linux faults in strlen. Draw the box and no text.
+    if (text == nullptr)
+        return;
+#endif
     textLength = strlen(text);
     position = text;
 

@@ -1,10 +1,12 @@
-#ifndef PLATFORMS_SDL_STUBS_UARTMIDIIMPL_H_
-#define PLATFORMS_SDL_STUBS_UARTMIDIIMPL_H_
+#ifndef PLATFORMS_SDL_MIDI_USBMIDIIMPL_H_
+#define PLATFORMS_SDL_MIDI_USBMIDIIMPL_H_
 
 #include "Platform.h"
 
-// Stub until section 10. Actions are copied for the same reason as UsbMidiImpl.
-class UartMidiImpl final : public UartMidi
+// The firmware's "USB" MIDI interface, on the MidiHub USB bus (every USB host MIDI device not
+// claimed by midi-jack). Mirrors platforms/imx/source/UsbMidiImpl.cpp: channels 1..16.
+// setReceiveActions copies: core passes a stack local.
+class UsbMidiImpl final : public UsbMidi
 {
   public:
     bool isReadAvailable() override;
@@ -17,9 +19,7 @@ class UartMidiImpl final : public UartMidi
     void sendPitchBend(int value, uint8_t channel) override;
     void sendNoteOn(uint8_t note, uint8_t velocity, uint8_t channel) override;
     void sendNoteOff(uint8_t note, uint8_t velocity, uint8_t channel) override;
-    void init() override;
     void setReceiveActions(MidiReceiveActions* receiveActions) override;
-    void setReceiveNoteOnAction(void (*action)(uint8_t, uint8_t, uint8_t)) override;
 
   private:
     MidiReceiveActions receiveActions = {};

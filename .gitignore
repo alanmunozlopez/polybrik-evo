@@ -9,3 +9,5 @@ sdcard/
 *.swp
 .vscode/
 .idea/
+# device logs pulled for debugging
+logs/

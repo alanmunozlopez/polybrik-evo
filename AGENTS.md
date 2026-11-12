@@ -45,9 +45,19 @@ Read this before changing code, whether you are a person or a coding agent. Each
 - Two-button windows answer to B and X through `sdlSetYesNo` (patch 27). The alias ends when either screen key is rebound; call `sdlClearYesNo()` where a window closes without rebinding.
 - `interfaceGlobals.invertValForList` decides whether +1 moves up or down a list. PolyBrik sets it false (patch 45); check it when you add a value entry on a list.
 
+## MIDI and USB audio (`platforms/sdl/midi/`)
+
+- `MidiHub` owns every raw MIDI port (`/dev/snd/midiC*D*`, plus `POLYBRIK_MIDI_DEV` paths for tests) on one detached pthread: hot-plug scan once a second, `select()` on the inputs, timed output. `UsbMidiImpl` / `UartMidiImpl` are thin adapters onto its two buses (USB, and Jack for names in `<sd>/midi-jack`). Channels are 1..16 at this interface, as on the IMX.
+- The firmware drains input in `midiUpdate()`, called from `updateAudioBuffers()`, so input handlers run on the audio thread under the audio lock, as they run in the audio ISR on the hardware.
+- Output timing: `SdlAudioOut` brackets each rendered block with `MidiHub::beginAudioBlock(playUs)` / `endAudioBlock()`. Sends inside a block are queued until `playUs`; `TimerImpl::scheduleMidiClockUs` adds the firmware's sub-block offset. Sends from any other thread go out immediately. The play time follows a frame counter with a slow anchor, so callback jitter does not reach the clock.
+- Do not use `std::thread` in device code: static glibc 2.28 can throw "Enable multithreading" without whole-archive libpthread. `MidiHub` uses `pthread_create`.
+- `--sim-clock` (golden runs) and `--no-midi` keep the hub off; the impls are then no-ops and the clock callback runs at once (the `Timer` default), so goldens are unchanged.
+- USB audio out is launcher-only: `launch.sh` points `AUDIODEV` at `plughw:<usb card>,<dev>`, and `SdlAudioOut` tries `POLYBRIK_AUDIODEV_FALLBACK` (space separated: ALSA names contain commas) when that fails.
+- `midi_test` runs the hub over two raw pseudo-terminals. macOS resets a pty's termios when its last slave fd closes, so the test keeps one open.
+
 ## Testing
 
-- Host tests: run the binaries in `build-host/tests/` directly (`actionlist_test`, `input_test`, `legend_test`, `canvas_test`, `eve_test`, `fs_test`, `audio_test`, `png_test`).
+- Host tests: run the binaries in `build-host/tests/` directly (`actionlist_test`, `input_test`, `legend_test`, `canvas_test`, `eve_test`, `fs_test`, `audio_test`, `png_test`, `midi_test`).
 - Golden screenshots: `bash platforms/sdl/golden/replay.sh <outdir>` replays every `.keys` script against a fresh copy of `sdcard/` and compares PNGs. Look at every DIFF before storing a new golden.
 - Useful flags: `--no-window --sim-clock --from-ready` (deterministic, timed from the first settled page), `--keys "200:fn2,900:list"` (Mini ids or `pad.<input>`), `--screenshot`, `--screenshot-strip`, `--device brick|brickpro`.
 - zsh trap: `"$at:list"` expands `:l` as a modifier. Write `"${at}:list"`.

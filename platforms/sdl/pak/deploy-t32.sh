@@ -27,6 +27,21 @@ chmod +x "$PAK/launch.sh" "$PAK/tracker-sdl"
 cp -R "$ROOT/platforms/sdl/pak/content" "$PAK/content"
 (cd "$PAK/content" && find . -type f -print0 | LC_ALL=C sort -z | xargs -0 md5 -r | md5 -q) > "$PAK/content.version"   # names and bytes
 ls -la "$PAK"
+# The same files as a MustardOS application (copy build-t32app/muos/PolyBrik to /mnt/mmc/MUOS/application/).
+MUOS="$ROOT/build-t32app/muos/$NAME"
+rm -rf "$MUOS"; mkdir -p "$(dirname "$MUOS")"
+cp -R "$PAK" "$MUOS"
+cp "$ROOT/platforms/sdl/pak/muos/mux_launch.sh" "$MUOS/"
+chmod +x "$MUOS/mux_launch.sh"
+echo "staged muOS application $MUOS"
+# And as a Knulli port (copy the contents of build-t32app/knulli to /userdata/roms/ports/).
+KNULLI="$ROOT/build-t32app/knulli"
+rm -rf "$KNULLI"; mkdir -p "$KNULLI"
+cp -R "$PAK" "$KNULLI/$NAME"
+cp "$ROOT/platforms/sdl/pak/knulli/PolyBrik.sh" "$KNULLI/$NAME.sh"
+cp "$ROOT/platforms/sdl/devtests/midi-diag.sh" "$KNULLI/MIDI Diag.sh"
+chmod +x "$KNULLI/$NAME.sh" "$KNULLI/MIDI Diag.sh"
+echo "staged Knulli port $KNULLI"
 [ "$STAGE_ONLY" = 1 ] && { echo "staged $PAK (not deployed)"; exit 0; }
 
 ssh -o ConnectTimeout=5 "$HOST" "echo device ok" || { echo "cannot reach $HOST"; exit 1; }

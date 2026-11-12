@@ -1,5 +1,6 @@
 #include "TimerImpl.h"
 #include "SimClock.h"
+#include "midi/MidiHub.h"
 
 #include <SDL.h>
 
@@ -37,3 +38,19 @@ void TimerImpl::delay(int ms)
 
 uint32_t TimerImpl::clockCycles() { return micros() * 1000u; }
 uint32_t TimerImpl::clockCyclesPerUs() { return 1000; }
+
+void TimerImpl::scheduleMidiClockUs(uint32_t delayUs, void (*callback)())
+{
+    if (SimClock::on || !MidiHub::instance().running())
+    {
+        if (callback)
+            callback();
+        return;
+    }
+    MidiHub::instance().scheduleClock(delayUs, callback);
+}
+
+void TimerImpl::cancelMidiClock()
+{
+    MidiHub::instance().cancelClock();
+}

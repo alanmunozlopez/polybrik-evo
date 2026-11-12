@@ -38,7 +38,35 @@ fi
 export LD_LIBRARY_PATH="/usr/trimui/lib:/usr/lib:$PAK_DIR/lib:$LD_LIBRARY_PATH"
 # hw:0,0 takes 44100 directly; the ALSA "default" is a dmix fixed at 48000 that resamples
 # on the device. SDL's ALSA backend opens $AUDIODEV when it is set.
+# USB audio: a class-compliant interface or DAC on the host port (snd-usb-audio) takes the output
+# when it is plugged in at launch. plughw converts to the rates and formats it accepts (many only do
+# 48000). If it does not open, tracker-sdl falls back to the Brick's own codec. An empty file named
+# usb-audio-off in the SD folder keeps the output on the Brick.
+usb_audio_pcm() {
+    for d in /proc/asound/card[0-9]*; do
+        [ -e "$d/usbid" ] || continue          # only USB cards have usbid
+        for p in "$d"/pcm*p; do
+            [ -d "$p" ] || continue
+            n="${d#/proc/asound/card}"; dev="${p##*/pcm}"; dev="${dev%p}"
+            echo "plughw:$n,$dev"
+            return 0
+        done
+    done
+    return 1
+}
+if [ -z "$AUDIODEV" ] && [ ! -e "$SD/usb-audio-off" ] && USB_PCM="$(usb_audio_pcm)"; then
+    echo "usb audio: $USB_PCM"
+    export AUDIODEV="$USB_PCM"
+fi
 export AUDIODEV="${AUDIODEV:-hw:0,0}"
+export POLYBRIK_AUDIODEV_FALLBACK="${POLYBRIK_AUDIODEV_FALLBACK:-hw:0,0 default}"
+
+# MIDI: every USB MIDI device on the host port is the firmware's USB MIDI interface. Lines of
+# $SD/midi-jack (parts of a device name, as the log lists them) send matching devices to the MIDI
+# jack interface instead. $SD/midi-offset-ms holds a number of milliseconds (may be negative) that
+# shifts the sequencer's MIDI output, for external gear with its own latency.
+[ -s "$SD/midi-offset-ms" ] && export POLYBRIK_MIDI_OFFSET_MS="$(head -1 "$SD/midi-offset-ms")"
+[ -d /proc/asound ] && { echo "asound cards:"; cat /proc/asound/cards; ls /dev/snd 2>/dev/null | tr '\n' ' '; echo; }
 
 echo 1 > /tmp/stay_awake
 ORIG_GOV="$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor 2>/dev/null)"
@@ -57,6 +85,8 @@ for c in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do echo performa
 [ -e "$SD/generic-r4" ] && TRACKER_ARGS="$TRACKER_ARGS --generic-r4"
 # An empty file named no-scale draws the 800x480 canvas 1:1 instead of stretched to the screen width.
 [ -e "$SD/no-scale" ] && TRACKER_ARGS="$TRACKER_ARGS --no-scale"
+# An empty file named no-midi turns USB MIDI off (no device thread), to tell MIDI problems from others.
+[ -e "$SD/no-midi" ] && TRACKER_ARGS="$TRACKER_ARGS --no-midi"
 while :; do
     ./tracker-sdl --sd "$SD" --fullscreen $TRACKER_ARGS
     rc=$?

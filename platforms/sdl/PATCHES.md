@@ -332,3 +332,9 @@ No `core/` file was edited for these. Both are handled in `platforms/sdl/CMakeLi
 
 - `invertValForList` is false on SDL, as on the Tracker+ (upstream: true on TRACKER_MINI). Every list the firmware edits with a value (play mode, filter type, synth model, saturation, recorder source and monitor, effect choice, file lists, step popups and the rest of the 28 read sites) now moves down on +1 and up on -1, for the page's value keys, the R4 list nudges and the jog wheel alike. Before, +1 moved up a list, so +1 on the first item did nothing.
 - Guard: `|| defined(PLATFORM_SDL)` on the existing `#ifndef TRACKER_MINI`.
+
+## core/libs/NewDisplay/textBox.cpp (patch 46, crash fix)
+
+- Bug (upstream, harmless on the Tracker): the Config items of the MIDI group (Clock in, Clock out, Transport in / out, Notes in, MIDI out, Middle C and the others) have no description, so `itemEditorOpen` passes `nullptr` to `showConfigItemDesctription` and `cTextBox::update` calls `strlen(nullptr)`. The Tracker's MCU reads address 0 without a fault; on Linux it is SIGSEGV, so PolyBrik crashed as soon as a MIDI setting was opened for editing (seen on the Brick Pro: `FATAL signal 11 addr (nil)`, pc in `strlen`, lr in `cTextBox::update`).
+- Fix: `cTextBox::update` returns after drawing the background and border when `text` is `nullptr`, so the description box is drawn empty.
+- Guard: `#ifdef PLATFORM_SDL` around the insertion. For upstream the guard can go: a null check costs nothing there either.

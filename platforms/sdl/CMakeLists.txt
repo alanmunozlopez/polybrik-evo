@@ -147,6 +147,7 @@ set_target_properties(tracker_core PROPERTIES
 file(GLOB SDL_PLATFORM_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/stubs/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/midi/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/eve/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/io/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/io/sdl/*.cpp"

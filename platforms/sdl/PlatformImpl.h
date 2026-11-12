@@ -15,10 +15,10 @@
 #include "stubs/PadsImpl.h"
 #include "stubs/RadioImpl.h"
 #include "stubs/Sgtl5000Impl.h"
-#include "stubs/UartMidiImpl.h"
+#include "midi/UartMidiImpl.h"
 #include "stubs/UsbAudioImpl.h"
 #include "stubs/UsbImpl.h"
-#include "stubs/UsbMidiImpl.h"
+#include "midi/UsbMidiImpl.h"
 
 class PlatformImpl final : public Platform
 {

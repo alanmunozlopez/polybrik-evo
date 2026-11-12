@@ -15,16 +15,19 @@ PolyBrik is a community project. It is **not affiliated with, endorsed by or sup
 5. [Building from source](#building-from-source)
 6. [Manual](#manual)
 7. [Brick and Brick Pro](#brick-and-brick-pro)
-8. [Known limitations](#known-limitations)
-9. [Maintenance](#maintenance)
-10. [How this was made](#how-this-was-made)
+8. [MIDI and USB audio](#midi-and-usb-audio)
+9. [Known limitations](#known-limitations)
+10. [Maintenance](#maintenance)
+11. [How this was made](#how-this-was-made)
 
 ## Status
 
 - Tested on the **TrimUI Brick Pro** running **NextUI**. The plain TrimUI Brick has not been tested on hardware yet; the key map supports it.
 - Built as a 32-bit (armhf) static binary with the Tracker Mini firmware flags, so projects, instruments and synth patches use the Tracker Mini formats.
 - Supported: every firmware page, the synth engines the Tracker Mini firmware offers (ACD, FAT, VAP, WTFM, PERC, DIRT and the open source CHIP), stereo samples, sample import, sample editing and the sample editor effects, export and render, projects and patches on the SD card.
-- Not supported: MIDI (USB and DIN), USB audio and USB storage, and audio input (the sample recorder records silence). See [Known limitations](#known-limitations).
+- **USB MIDI** (host): class-compliant MIDI controllers, keyboards and USB to DIN cables on the Brick's USB host port, as the firmware's USB MIDI and MIDI jack interfaces: notes and CC in and out, clock and transport in and out. Needs an OS whose kernel has `snd-usb-audio`; see [MIDI and USB audio](#midi-and-usb-audio).
+- **USB audio out** (host): a class-compliant USB audio interface or DAC plugged in at launch takes the output.
+- Not supported: the Brick as a USB device for a computer (USB MIDI device, USB audio device, USB storage), and audio input (the sample recorder records silence). See [Known limitations](#known-limitations).
 
 ## Credits and upstream
 
@@ -262,9 +265,38 @@ PolyBrik detects the device from NextUI and adapts.
 
 Everything else is the same on both.
 
+## MIDI and USB audio
+
+The Tracker is a USB *device*: you plug it into a computer. The Brick works the other way round: its USB-C host port takes your gear, the way a computer would. PolyBrik maps what you plug in onto the firmware's two MIDI interfaces, so every MIDI setting in **Config, MIDI** (clock in and out, transport, notes in and out, channels, CC) works as the Tracker Mini manual describes.
+
+**What you need**
+
+- An OS whose kernel has the USB audio class driver (`snd-usb-audio`) and runs the port as host. Run `platforms/sdl/devtests/midi-diag.sh` on the device to find out: it ends with a verdict.
+- The host port: on the plain Brick it is the **top** USB-C port (the bottom one charges). On the Brick Pro, check it with the diagnostic.
+- A class-compliant device (no driver needed on a computer), a data cable, and preferably a powered USB hub: the port gives about 500 mA.
+
+**How devices are mapped**
+
+- Every MIDI port the kernel exposes (`/dev/snd/midiC*D*`) is opened and re-checked once a second, so you can plug and unplug while PolyBrik runs. The log (`PolyBrik.txt`) lists each device with its name.
+- All devices are the firmware's **USB** MIDI interface. Their inputs are merged; output goes to all of them.
+- To use a device as the Tracker's **MIDI jack** (for example a USB to DIN cable going to a synth), put part of its name, as the log shows it, on a line of `PolyBrik/midi-jack`. Then the Config page's Jack and USB settings address the two separately.
+- Sequencer output (notes, clock, start and stop) is held back until the audio it belongs to is actually heard, so external gear plays in time with PolyBrik's own sound. If your gear adds its own delay, put a number of milliseconds into `PolyBrik/midi-offset-ms` (negative sends earlier).
+- When PolyBrik quits it sends All Notes Off on every channel of every device.
+
+**USB audio**
+
+- A USB audio interface or DAC plugged in **when PolyBrik starts** takes the output (any rate it supports; ALSA converts). If it does not open, the Brick's own speaker and headphone output are used. Create an empty `PolyBrik/usb-audio-off` to always use the Brick's output.
+- The Config page's USB audio setting (the Tracker as an audio interface for a computer) has no effect.
+
+**MustardOS (muOS)**
+
+`deploy-t32.sh --stage-only` also stages `build-t32app/muos/PolyBrik`, a muOS application folder. Copy it to `/mnt/mmc/MUOS/application/`. It keeps the projects in `/mnt/mmc/PolyBrik`, stops PipeWire while PolyBrik uses the sound card directly, and starts it again afterwards. Create `PolyBrik/device` with the single word `brickpro` or `brick` if the button map is wrong. **This launcher is experimental and has not been run on a device yet.**
+
 ## Known limitations
 
-- **MIDI** (USB and DIN), **USB audio**, **USB storage** and **audio input** are not supported. The sample recorder runs but records silence.
+- **The Brick as a USB device** (USB MIDI or USB audio for a computer, USB storage) is not supported: the TrimUI kernel has no USB MIDI or audio gadget. **Audio input** is not supported either; the sample recorder runs but records silence.
+- **MIDI input timing** follows the audio period: incoming notes and clock are read once per audio callback (about 12 ms on the device), so incoming clock has up to that much jitter. Sync from PolyBrik to other gear (clock out) is timed separately and is much tighter.
+- A **USB audio device** is chosen at launch; plugging one in later needs a restart of PolyBrik.
 - **One highlight at a time:** the Mini lets you hold two screen keys together (two parameters, several mixer tracks, two sample points). The action list selects one entry at a time.
 - Pattern-held shortcuts that use the D-pad (queue and step patterns while holding the Pattern key) are out of reach, because your thumb holds the Fn key on the D-pad. The Pattern entry in the Pattern page's list changes and queues patterns instead.
 - The plain TrimUI Brick has not been tested on hardware yet.
