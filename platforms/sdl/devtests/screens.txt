@@ -52,7 +52,9 @@ file_open       900   300:file,600:screen2
 project_cycle   10300,11000,12200,13200,15000   200:rec,350:enter,500:rec,600:play,700:file,1000:screen5,1300:screen8,1600:down,1750:right,1900:right,2050:right,2200:right,2350:down,2500:screen1,2650:left,2800:left,2950:screen1,3100:left,3250:down,3400:screen1,3550:right,3700:right,3850:right,4000:up,4150:screen1,4300:left,4450:left,4600:left,4750:left,4900:left,5050:left,5200:screen1,5350:left,5500:screen1,5650:left,5800:left,5950:left,6100:left,6250:left,6400:left,6550:screen1,6700:right,6850:right,7000:right,7150:right,7300:right,7450:screen1,7600:left,7750:left,7900:down,8050:screen1,8200:left,8350:left,8500:left,8650:left,8800:up,8950:screen1,9100:down,9250:down,9400:screen1,9550:right,9700:right,9850:up,10000:up,10150:screen1,10500:screen8,11400:screen1,11700:screen2,12400:screen2,12700:down,12900:screen8,13400:screen7,14400:pattern
 
 # ---- Song ------------------------------------------------------------------------------------------
-# rec mode: Add Slot (screen4), pattern +1 (screen7) twice, another slot, +1, Delete Slot (screen5), Undo (screen3)
+# rec mode: Add Slot (screen4), pattern +1 (screen7) twice, another slot, +1, Delete Slot (screen5), Undo (screen3).
+# Undo shows "No undo data :(" by design: Song undo (cFileManager::undoSongPattern) restores only pattern
+# contents changed from the Song page (pasted or deleted tracks, fileManagerSong.cpp); slot edits keep no history.
 song_arrange    1300,1900,2500,3100,3700,4300   300:song,500:rec,1000:screen4,1600:screen7,1800:screen7,2200:screen4,2800:screen7,3400:screen5,4000:screen3
 # tempo: Right moves to the tempo bar, +1 and +10
 song_tempo      900,1500,2100   300:song,600:right,1200:plus1,1800:plus10

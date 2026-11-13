@@ -66,6 +66,7 @@ Read this before changing code, whether you are a person or a coding agent. Each
 
 - Never kill `nextui.elf` over SSH; launch paks from the Tools menu.
 - `platforms/sdl/devtests/brick-suite.sh [--update] [--os knulli|nextui] [HOST]` runs the screen regression suite (`screens.txt`, goldens in `devtests/golden/`) headless on the device over SSH and diffs every screenshot. Add a case to `screens.txt` for each visual bug you fix.
+- Regression: after a new feature or fix, run `brick-suite.sh` on the device before it ships. A `DIFF` is either a regression (fix it) or an intended change (look at `build-suite/<os>/<shot>.diff.png`, then `--update` that case only). New features get their own cases.
 - `platforms/sdl/devtests/brick-shot.sh 'KEYS' out.png` runs the app headless from `/tmp` and copies a screenshot back, without touching the screen or the user's SD folder. `BIN=path` runs a local build.
 - NextUI passes `DEVICE` (`brick` or `brickpro`); the key map and legend follow it.
 - The deploy scripts and `brick-shot.sh` reach the device over SSH at `$BRICK_HOST` (default `brick`, an SSH alias or address of your own).
