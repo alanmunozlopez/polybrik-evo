@@ -11,3 +11,5 @@ sdcard/
 .idea/
 # device logs pulled for debugging
 logs/
+build-suite/
+__pycache__/

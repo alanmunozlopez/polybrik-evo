@@ -1,0 +1,94 @@
+# Cases for brick-suite.sh, one per line:  name  times_ms  keys  [check]
+# times_ms: one screenshot time, or several separated by commas (<name>-1.png, <name>-2.png, ...).
+# keys: the --keys spec ("-" for none): "ms:id" or "ms:id:hold_ms", Mini ids (up, enter, rec, plus1,
+#   screen1..screen8 for the eight keys under the screen, the module ids pattern, song, file, ...) or
+#   pad.<input>. Keep 150 ms or more between presses of the same key.
+# check: none for a screen case: the run uses --sim-clock (firmware time is one ms per loop), so each
+#   screenshot is the same frame on every run and is compared with golden/<shot>.png.
+#   audio:silent or audio:sound: the run renders audio in real time to <name>.wav and wavcheck.py
+#   checks it; screenshots of these cases are not compared.
+# Times count from the first settled page (--from-ready). The SD is a fresh copy of the pak's factory
+# content: an empty project, 48 empty sample instruments and the three synth slots S1..S3.
+#
+# Navigation learned on the device: Enter on the Pattern page plays; rec toggles edit mode, where
+# Enter writes a note (C5, instrument 01) and moves down. minus1 on instrument 01 wraps to S3, S2, S1.
+# In the Sample Loader Enter opens a folder and screen1 (Add/Enter) loads the selected file.
+
+# ---- Module pages, as they open --------------------------------------------------------------------
+pattern         3000  -
+song            3000  200:song
+file            3000  200:file
+config          3000  200:config
+master          3000  200:master
+params          3000  200:params
+perf            3000  200:perf
+sample_load     3000  200:sample_load
+sample_play     3000  200:sample_play
+sample_edit     3000  200:sample_edit
+sample_rec      3000  200:sample_rec
+
+# ---- Pattern editing -----------------------------------------------------------------------------
+# rec, a note on step 1, the next step selected; then back up and one semitone up
+pat_note        900,1500,2100   300:rec,450:enter,1200:up,1800:plus1
+# the cursor through the instrument, FX1, FX2 and note columns of a step with a note
+pat_columns     900,1500,2100,2700   300:rec,450:enter,600:up,800:instr,1400:fx1,2000:fx2,2600:note
+# two notes, then Insert above them
+pat_insert      900,1500   300:rec,450:enter,600:enter,700:up,800:up,1200:insert
+pat_undo        700,1300,1900   300:rec,450:enter,1000:undo,1600:redo
+pattern_play    3000  200:play
+pat_play_stop   900,1500   300:play,1200:play
+# Pattern parameter key, then +1 and -10
+pattern_select  700,1300,1900   300:screen2,1000:plus1,1600:minus10
+
+# ---- File ------------------------------------------------------------------------------------------
+file_new_dialog 900   300:file,600:screen1
+file_open       900   300:file,600:screen2
+
+# The note starts playback: play stops it before File. Save As test-project (the name typed on the on-screen keyboard: Down leaves the name field, screen1
+# types the selected key, screen8 saves; in the browser and the save-changes window the labels sit left of
+# their keys: Save / Open is screen8, Don't Save screen7, Cancel screen6). A note goes in first; after
+# New Project and Open (Don't Save), test-project comes back with its note. The project exists only in the
+# run's temporary SD.
+project_cycle   10300,11000,12200,13200,15000   200:rec,350:enter,500:rec,600:play,700:file,1000:screen5,1300:screen8,1600:down,1750:right,1900:right,2050:right,2200:right,2350:down,2500:screen1,2650:left,2800:left,2950:screen1,3100:left,3250:down,3400:screen1,3550:right,3700:right,3850:right,4000:up,4150:screen1,4300:left,4450:left,4600:left,4750:left,4900:left,5050:left,5200:screen1,5350:left,5500:screen1,5650:left,5800:left,5950:left,6100:left,6250:left,6400:left,6550:screen1,6700:right,6850:right,7000:right,7150:right,7300:right,7450:screen1,7600:left,7750:left,7900:down,8050:screen1,8200:left,8350:left,8500:left,8650:left,8800:up,8950:screen1,9100:down,9250:down,9400:screen1,9550:right,9700:right,9850:up,10000:up,10150:screen1,10500:screen8,11400:screen1,11700:screen2,12400:screen2,12700:down,12900:screen8,13400:screen7,14400:pattern
+
+# ---- Song ------------------------------------------------------------------------------------------
+# rec mode: Add Slot (screen4), pattern +1 (screen7) twice, another slot, +1, Delete Slot (screen5), Undo (screen3)
+song_arrange    1300,1900,2500,3100,3700,4300   300:song,500:rec,1000:screen4,1600:screen7,1800:screen7,2200:screen4,2800:screen7,3400:screen5,4000:screen3
+# tempo: Right moves to the tempo bar, +1 and +10
+song_tempo      900,1500,2100   300:song,600:right,1200:plus1,1800:plus10
+# Song Play (screen2)
+song_play       1500  300:song,600:screen2
+
+# ---- Config groups ---------------------------------------------------------------------------------
+config_general   900   300:config,600:down
+config_midi      3000  200:config,600:down,900:down,1200:right,1500:enter
+config_usb       1100  300:config,500:down,700:down,900:down
+config_metronome 1300  300:config,500:down,700:down,900:down,1100:down
+config_firmware  1500  300:config,500:down,700:down,900:down,1100:down,1300:down
+config_fnbind    1700  300:config,500:down,700:down,900:down,1100:down,1300:down,1500:down
+config_info      1900  300:config,500:down,700:down,900:down,1100:down,1300:down,1500:down,1700:down
+
+# ---- Master and mixers -----------------------------------------------------------------------------
+master_pages    900,1500   300:master,600:master,1200:master
+
+# ---- Instruments -----------------------------------------------------------------------------------
+params_automation 900   300:params,600:params
+# minus1 on instrument 01 wraps to the synth slots
+synth_slots     1100,1700,2300   300:rec,450:enter,600:instr,900:minus1,1500:minus1,2100:minus1
+# Synth 2 (ACD) parameters, then each engine of the model list
+synth_models    1500,2100,2700,3300,3900,4500,5100   300:rec,450:enter,600:instr,900:minus1,1100:minus1,1300:minus1,1400:params,1800:down,2400:down,3000:down,3600:down,4200:down,4800:down
+
+# ---- Samples: 808_BD2 into instrument 1 (Samples / PolyBrik Factory / PERCUSSIVE / 808) -------------
+sample_loaded   2600,3400,4200   300:sample_load,450:down,600:down,750:enter,900:down,1050:enter,1200:down,1350:down,1500:down,1650:enter,1800:down,1950:enter,2100:down,2300:screen1,2900:sample_play,3700:sample_edit
+# playback modes: Forward Loop, Slice, Beat Slice, Wavetable, Granular
+sample_modes    3000,3800,4200,4600,5000   300:sample_load,450:down,600:down,750:enter,900:down,1050:enter,1200:down,1350:down,1500:down,1650:enter,1800:down,1950:enter,2100:down,2300:screen1,2600:sample_play,2800:down,3200:down,3400:down,3600:down,4000:down,4400:down,4800:down
+# editor effects (screen7 focuses the effect list): Crop, Reverse, Amplifier, Overdrive
+sample_effects  3400,3800,4200,4600   300:sample_load,450:down,600:down,750:enter,900:down,1050:enter,1200:down,1350:down,1500:down,1650:enter,1800:down,1950:enter,2100:down,2300:screen1,2600:sample_edit,2800:screen7,3200:down,3600:down,4000:down,4400:down
+# Reverse applied (screen6): the waveform is mirrored
+sample_reverse  3400,4400   300:sample_load,450:down,600:down,750:enter,900:down,1050:enter,1200:down,1350:down,1500:down,1650:enter,1800:down,1950:enter,2100:down,2300:screen1,2600:sample_edit,2800:screen7,3000:down,3200:down,3800:screen6
+
+# ---- Audio (real time, rendered to WAV) ------------------------------------------------------------
+# a stopped project outputs digital silence: any hiss on the device comes after the app
+audio_silence   3000  -   audio:silent
+audio_808       3600,5500   300:sample_load,450:down,600:down,750:enter,900:down,1050:enter,1200:down,1350:down,1500:down,1650:enter,1800:down,1950:enter,2100:down,2300:screen1,2600:pattern,2800:rec,2950:enter,3150:rec,3400:play   audio:sound
+audio_synth     2400,4500   300:rec,450:enter,600:instr,900:minus1,1200:minus1,1500:minus1,1800:rec,2100:play   audio:sound

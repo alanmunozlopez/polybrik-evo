@@ -58,7 +58,7 @@ struct Options
     uint64_t quitAfterMs = 0;
     const char* log = nullptr;
     const char* screenshot = nullptr;
-    uint64_t screenshotAtMs = 0;
+    std::vector<uint64_t> screenshotAtMs; // --screenshot-at MS[,MS...]: one PNG per time, in order
     bool screenshotAt = false;
     bool dumpDl = false;
     const char* keys = nullptr;
@@ -74,7 +74,7 @@ void usage(const char* argv0)
 {
     fprintf(stderr,
             "usage: %s --sd DIR [--headless] [--fullscreen] [--scale N | --no-scale] [--quit-after MS] [--log FILE]\n"
-            "          [--screenshot PATH] [--screenshot-at MS] [--dump-dl] [--keys SPEC]\n"
+            "          [--screenshot PATH] [--screenshot-at MS[,MS...]] [--dump-dl] [--keys SPEC]\n"
             "          [--audio-file PATH | --no-audio] [--device brick|brickpro|brickpro-knulli] [--no-legend]\n"
             "          [--screenshot-strip PATH] [--no-window] [--from-ready] [--sim-clock]\n          [--generic-r4] [--no-midi]\n",
             argv0);
@@ -131,7 +131,19 @@ Options parseArgs(int argc, char** argv)
         else if (!strcmp(argv[i], "--screenshot-at") && hasValue)
         {
             o.screenshotAt = true;
-            o.screenshotAtMs = strtoull(argv[++i], nullptr, 10);
+            const char* p = argv[++i];
+            while (*p)
+            {
+                char* end = nullptr;
+                const uint64_t ms = strtoull(p, &end, 10);
+                if (end == p || (*end && *end != ',') ||
+                    (!o.screenshotAtMs.empty() && ms <= o.screenshotAtMs.back()))
+                    usage(argv[0]); // numbers, increasing
+                o.screenshotAtMs.push_back(ms);
+                p = *end ? end + 1 : end;
+            }
+            if (o.screenshotAtMs.empty())
+                usage(argv[0]);
         }
         else if (!strcmp(argv[i], "--dump-dl"))
             o.dumpDl = true;
@@ -157,12 +169,22 @@ Options parseArgs(int argc, char** argv)
     return o;
 }
 
-// --screenshot PATH, or screenshot-<ms>.png next to the sd dir.
-void screenshot(const Options& opt, const Canvas& canvas, uint64_t ms)
+// --screenshot PATH, or screenshot-<ms>.png next to the sd dir. With several --screenshot-at times,
+// PATH gets -1, -2, ... before its extension (shot.png -> shot-1.png, shot-2.png).
+void screenshot(const Options& opt, const Canvas& canvas, uint64_t ms, int index = 0)
 {
     std::string path;
     if (opt.screenshot)
+    {
         path = opt.screenshot;
+        if (index > 0)
+        {
+            const size_t dot = path.rfind('.');
+            const size_t slash = path.rfind('/');
+            const size_t at = dot != std::string::npos && (slash == std::string::npos || dot > slash) ? dot : path.size();
+            path.insert(at, "-" + std::to_string(index));
+        }
+    }
     else
     {
         const char* slash = strrchr(opt.sd, '/');
@@ -299,7 +321,7 @@ int main(int argc, char** argv)
     const char* lastPage = "";
     uint32_t lastHeld = 0;
 
-    bool shotDone = false;
+    size_t shotsDone = 0; // --screenshot-at times already taken
     // Boot time varies with machine load; --from-ready moves the script clock to the first settled firmware page.
     bool ready = !opt.fromReady;
     uint64_t base = t0;
@@ -368,11 +390,17 @@ int main(int argc, char** argv)
             out->setUnscaled(unscaled);
         }
         bool shot = input.takeScreenshotRequest();   // P key
-        if (ready && !shotDone && opt.screenshotAt && elapsed >= opt.screenshotAtMs)
-            shot = shotDone = true;
+        int shotIndex = 0;
+        if (ready && opt.screenshotAt && shotsDone < opt.screenshotAtMs.size() &&
+            elapsed >= opt.screenshotAtMs[shotsDone])
+        {
+            shot = true;
+            shotsDone++;
+            shotIndex = opt.screenshotAtMs.size() > 1 ? (int)shotsDone : 0;
+        }
         if (shot)
         {
-            screenshot(opt, canvas, elapsed);
+            screenshot(opt, canvas, elapsed, shotIndex);
             if (opt.screenshotStrip)
                 fprintf(stderr, "strip screenshot %s: %s\n", opt.screenshotStrip,
                         savePng(legend.canvas(), opt.screenshotStrip) ? "ok" : "FAILED");
