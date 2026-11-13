@@ -139,8 +139,9 @@ int main()
     // everything but l3/r3, brickpro everything; the indices that differ per device
     const BrickDevice* brick = InputMap::brickDevice("brick");
     const BrickDevice* pro = InputMap::brickDevice("brickpro");
-    assert(brick && pro && !InputMap::brickDevice("nope"));
-    for (const BrickDevice* d : { brick, pro })
+    const BrickDevice* proK = InputMap::brickDevice("brickpro-knulli");
+    assert(brick && pro && proK && !InputMap::brickDevice("nope"));
+    for (const BrickDevice* d : { brick, pro, proK })
         for (size_t i = 0; i < d->count; i++)
         {
             const JoySource& s = d->sources[i];
@@ -155,7 +156,13 @@ int main()
         bool stick = !strcmp(id, "l3") || !strcmp(id, "r3") || !strncmp(id, "ls_", 3);
         assert((InputMap::joySource(*brick, id) != nullptr) == !stick);
         assert(InputMap::joySource(*pro, id) != nullptr);
+        assert(InputMap::joySource(*proK, id) != nullptr);
     }
+    // Knulli: digital L2 / R2 at b6 / b7, Select / Start b8 / b9, L4 / R4 (KEY_F1 / KEY_F2) b13 / b14
+    assert(InputMap::joySource(*proK, "l2")->kind == JoyKind::Button && InputMap::joySource(*proK, "r2")->index == 7);
+    assert(InputMap::joySource(*proK, "select")->index == 8 && InputMap::joySource(*proK, "start")->index == 9);
+    assert(InputMap::joySource(*proK, "f1")->index == 13 && InputMap::joySource(*proK, "f2")->index == 14);
+    assert(InputMap::joySource(*proK, "west")->index == 3 && InputMap::joySource(*proK, "wheel_y")->index == 3);
     assert(InputMap::joySource(*brick, "f1")->index == 9 && InputMap::joySource(*brick, "f2")->index == 10);
     assert(InputMap::joySource(*pro, "f1")->index == 11 && InputMap::joySource(*pro, "f2")->index == 12);
     assert(InputMap::joySource(*pro, "l3")->index == 9 && InputMap::joySource(*pro, "r3")->index == 10);

@@ -43,7 +43,7 @@ class SdlInput
         screenshot = false;
         return r;
     }
-    // Physical index map for the pad: "brick" (default) or "brickpro". False and no change
+    // Physical index map for the pad: "brick" (default), "brickpro" or "brickpro-knulli". False and no change
     // when the name is unknown.
     bool setDevice(const char* name);
     // One physical pad input (InputMap::kBrickBindings ids) went down or up. Repeats of

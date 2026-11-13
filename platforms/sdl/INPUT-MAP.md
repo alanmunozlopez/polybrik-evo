@@ -57,5 +57,9 @@ Both devices have two buttons under the screen: printed L4 / R4 on the Brick Pro
 
 `--device` or the `DEVICE` environment variable picks `brick` or `brickpro` (default `brick`). On the plain Brick raw b9 / b10 are L4 / R4; on the Pro they are the stick clicks and L4 / R4 are b11 / b12. The stick axes exist only in the Pro table. The stick thresholds are not device-verified yet.
 
+### Knulli (`brickpro-knulli`)
+
+Knulli exposes the Brick Pro pad as its own kernel device (`TRIMUI Brick Pro Controller`), not through NextUI's input daemon, so the raw indices differ and the NextUI tables (`brick`, `brickpro`) stay as they are. The Knulli launcher picks `brickpro-knulli` when that controller is present. Same physical ids and bindings, other indices: b0 B, b1 A, b2 X, b3 Y, b4 / b5 L1 / R1, b6 / b7 L2 / R2 (digital buttons, no trigger axes), b8 Select, b9 Start, b10 Menu, b11 / b12 stick clicks, b13 / b14 L4 / R4 (KEY_F1 / KEY_F2), stick axes 0 / 1, wheel axes 2 / 3. Taken from the controller's key bitmap and Knulli's `es_input.cfg`, and checked by hand on a Brick Pro (Knulli Scarab 2026-08-19).
+
 ## Ideas (post-MVP)
 - Haptic ticks on the jog wheel, Pro only. Not checked: whether the Brick's haptics setting drives a motor reachable from a pak; needs its own device probe.

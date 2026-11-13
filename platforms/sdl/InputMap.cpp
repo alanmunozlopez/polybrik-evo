@@ -182,9 +182,43 @@ static const JoySource kBrickProSources[] = {
     { "wheel_x", JoyKind::Wheel, 3, 0 },
     { "wheel_y", JoyKind::Wheel, 4, 0 },
 };
+// Brick Pro under Knulli: its kernel exposes "TRIMUI Brick Pro Controller" (045e:028e) directly, not
+// NextUI's input daemon. Key bitmap read on the device: BTN 304 305 307 308 310..318, then KEY_F1,
+// KEY_F2, volume and home; ABS X Y RX RY and hat 0, no trigger axes. The static SDL numbers buttons
+// from BTN_JOYSTICK up first, so b0..b12 are 304..318 in order and b13 / b14 are KEY_F1 / KEY_F2
+// (L4 / R4). Roles follow Knulli's own es_input.cfg for this controller: 307 is X (north), 308 Y (west),
+// 312 / 313 the digital L2 / R2, 316 the Menu (hotkey) key, 317 / 318 the stick clicks.
+static const JoySource kBrickProKnulliSources[] = {
+    { "dpad_up", JoyKind::Hat, 0, SDL_HAT_UP },
+    { "dpad_down", JoyKind::Hat, 0, SDL_HAT_DOWN },
+    { "dpad_left", JoyKind::Hat, 0, SDL_HAT_LEFT },
+    { "dpad_right", JoyKind::Hat, 0, SDL_HAT_RIGHT },
+    { "south", JoyKind::Button, 0, 0 },
+    { "east", JoyKind::Button, 1, 0 },
+    { "north", JoyKind::Button, 2, 0 },
+    { "west", JoyKind::Button, 3, 0 },
+    { "l1", JoyKind::Button, 4, 0 },
+    { "r1", JoyKind::Button, 5, 0 },
+    { "l2", JoyKind::Button, 6, 0 },
+    { "r2", JoyKind::Button, 7, 0 },
+    { "select", JoyKind::Button, 8, 0 },
+    { "start", JoyKind::Button, 9, 0 },
+    { "menu", JoyKind::Button, 10, 0 },
+    { "l3", JoyKind::Button, 11, 0 },
+    { "r3", JoyKind::Button, 12, 0 },
+    { "f1", JoyKind::Button, 13, 0 },
+    { "f2", JoyKind::Button, 14, 0 },
+    { "ls_left", JoyKind::AxisNeg, 0, 0 },
+    { "ls_right", JoyKind::Axis, 0, 0 },
+    { "ls_up", JoyKind::AxisNeg, 1, 0 },
+    { "ls_down", JoyKind::Axis, 1, 0 },
+    { "wheel_x", JoyKind::Wheel, 2, 0 },
+    { "wheel_y", JoyKind::Wheel, 3, 0 },
+};
 const BrickDevice kBrickDevices[] = {
     { "brick", kBrickSources, sizeof(kBrickSources) / sizeof(kBrickSources[0]) },
     { "brickpro", kBrickProSources, sizeof(kBrickProSources) / sizeof(kBrickProSources[0]) },
+    { "brickpro-knulli", kBrickProKnulliSources, sizeof(kBrickProKnulliSources) / sizeof(kBrickProKnulliSources[0]) },
 };
 const size_t kBrickDeviceCount = sizeof(kBrickDevices) / sizeof(kBrickDevices[0]);
 

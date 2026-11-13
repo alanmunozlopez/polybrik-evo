@@ -75,7 +75,7 @@ void usage(const char* argv0)
     fprintf(stderr,
             "usage: %s --sd DIR [--headless] [--fullscreen] [--scale N | --no-scale] [--quit-after MS] [--log FILE]\n"
             "          [--screenshot PATH] [--screenshot-at MS] [--dump-dl] [--keys SPEC]\n"
-            "          [--audio-file PATH | --no-audio] [--device brick|brickpro] [--no-legend]\n"
+            "          [--audio-file PATH | --no-audio] [--device brick|brickpro|brickpro-knulli] [--no-legend]\n"
             "          [--screenshot-strip PATH] [--no-window] [--from-ready] [--sim-clock]\n          [--generic-r4] [--no-midi]\n",
             argv0);
     exit(2);

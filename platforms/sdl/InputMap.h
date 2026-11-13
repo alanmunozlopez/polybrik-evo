@@ -49,7 +49,7 @@ struct JoySource
 };
 struct BrickDevice
 {
-    const char* name; // "brick" or "brickpro", as the DEVICE environment variable
+    const char* name; // "brick", "brickpro" or "brickpro-knulli", as the DEVICE environment variable
     const JoySource* sources;
     size_t count;
 };

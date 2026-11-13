@@ -75,7 +75,9 @@ cleanup() {
     if [ -n "$ORIG_GOV" ]; then
         for c in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do echo "$ORIG_GOV" > "$c" 2>/dev/null; done
     fi
-    cat /dev/zero > /dev/fb0 2>/dev/null
+    # Blank the screen for the menu that comes back. POLYBRIK_KEEP_FB=1 (Knulli) leaves fb0 alone: its
+    # menu draws through the GPU and restores the display itself.
+    [ "${POLYBRIK_KEEP_FB:-0}" = 1 ] || cat /dev/zero > /dev/fb0 2>/dev/null
 }
 trap cleanup EXIT INT TERM HUP QUIT
 for c in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do echo performance > "$c" 2>/dev/null; done
